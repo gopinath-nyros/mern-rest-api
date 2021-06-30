@@ -1,0 +1,9 @@
+{
+    "env": {
+        "DB_USER": "nivetha",
+        "DB_PASSWORD": "WVgn2vWqoJE45jv2",
+        "DB_NAME": "mern-prod",
+        "POSITION_STACK_API": "05a1e63dc05ea8a82b35f0d4f2f81d1a",
+        "JWT_KEY": "this_is_a_private_key"
+    }
+}
