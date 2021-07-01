@@ -10,6 +10,9 @@ const jwt = require("jsonwebtoken");
 const HttpError = require("../models/http-error");
 const User = require("../models/user");
 
+// cloudinary
+const cloudinary = require("../util/cloudinary");
+
 const getUsers = async (req, res, next) => {
   console.log(`${req.method} REQUEST FOR TO GET ALL USERS INCOMING...`);
   let users;
@@ -33,6 +36,7 @@ const signup = async (req, res, next) => {
   const { username, email, password } = req.body;
   // console.log(email);
   let existingUser;
+
   try {
     existingUser = await User.findOne({ email: email });
     // console.log(existingUser);
@@ -59,12 +63,26 @@ const signup = async (req, res, next) => {
     return next(err);
   }
 
+  // cloudinary
+  let image_url;
+  let cloudinaryID;
+  try {
+    const result = await cloudinary.uploader.upload(req.file.path);
+    image_url = result.secure_url;
+    cloudinaryID = result.public_id;
+    console.log(result);
+  } catch (err) {
+    const error = new HttpError("something went wrong in cloudinary", 500);
+    return next(error);
+  }
+
   const createdUser = new User({
     username,
     email,
-    image: req.file.path,
+    image: image_url,
     password: hashedPassword,
     places: [],
+    cloudinary_id: cloudinaryID,
   });
 
   try {
@@ -128,9 +146,6 @@ const login = async (req, res, next) => {
     const error = new HttpError("Invalid credentials", 403);
     return next(error);
   }
-
-  console.log("before token");
-  console.log(process.env.JWT_KEY);
 
   // generating the JWT
   let token;

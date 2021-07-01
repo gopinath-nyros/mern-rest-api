@@ -50,6 +50,7 @@ app.use((error, req, res, next) => {
 });
 
 const url = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASSWORD}@cluster0.9593i.mongodb.net/${process.env.DB_NAME}?retryWrites=true&w=majority`;
+// const url = `mongodb+srv://nivetha:WVgn2vWqoJE45jv2@cluster0.9593i.mongodb.net/mern-prod?retryWrites=true&w=majority`;
 
 mongoose
   .connect(url, {

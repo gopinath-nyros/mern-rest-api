@@ -2,8 +2,11 @@
     "env": {
         "DB_USER": "nivetha",
         "DB_PASSWORD": "WVgn2vWqoJE45jv2",
-        "DB_NAME": "mern-prod",
+        "DB_NAME": "mern",
         "POSITION_STACK_API": "05a1e63dc05ea8a82b35f0d4f2f81d1a",
-        "JWT_KEY": "this_is_a_private_key"
+        "JWT_KEY": "this_is_a_private_key",
+        "CLOUD_NAME": "gopikrm",
+        "API_KEY": "193871877826939",
+        "API_SECRET": "d6KiTHOl4pBas7HedBPa-2ZsElY"
     }
 }

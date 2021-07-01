@@ -10,6 +10,8 @@ const HttpError = require("../models/http-error");
 const getCoordinates = require("../util/geo-location");
 const Place = require("../models/place");
 
+const cloudinary = require("../util/cloudinary");
+
 const getPlaceById = async (req, res, next) => {
   console.log(`${req.method} PLACE BY ID REQUEST INCOMING...`);
   const placeID = req.params.pid;
@@ -89,13 +91,28 @@ const createPlace = async (req, res, next) => {
     return next(err);
   }
   console.log("pass");
+
+  // cloudinary
+  let image_url;
+  let cloudinaryID;
+  try {
+    const result = await cloudinary.uploader.upload(req.file.path);
+    image_url = result.secure_url;
+    cloudinaryID = result.public_id;
+    console.log(result);
+  } catch (err) {
+    const error = new HttpError("something went wrong in cloudinary", 500);
+    return next(error);
+  }
+
   const createdPlace = new Place({
     title,
     description,
     address,
     location: coordinates,
-    image: req.file.path,
+    image: image_url,
     creator: req.userData.userId,
+    cloudinary_id: cloudinaryID,
   });
 
   console.log(createdPlace);
@@ -213,11 +230,13 @@ const deletePlace = async (req, res, next) => {
   }
 
   // get the path for deleting images
-  const imagePath = place.image;
+  // const imagePath = place.image;
 
   try {
     const sess = await mongoose.startSession();
     sess.startTransaction();
+    // delete image from cloudinary
+    await cloudinary.uploader.destroy(place.cloudinary_id);
     await place.remove({ session: sess });
     place.creator.places.pull(place);
     await place.creator.save({ session: sess });
@@ -231,9 +250,9 @@ const deletePlace = async (req, res, next) => {
   }
 
   // delete image using unlink
-  fs.unlink(imagePath, (err) => {
-    console.log(err);
-  });
+  // fs.unlink(imagePath, (err) => {
+  //   console.log(err);
+  // });
 
   res.status(200).json({ message: "deleted successfully!" });
 };
