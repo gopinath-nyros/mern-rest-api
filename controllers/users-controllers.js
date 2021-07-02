@@ -14,7 +14,6 @@ const User = require("../models/user");
 const cloudinary = require("../util/cloudinary");
 
 const getUsers = async (req, res, next) => {
-  console.log(`${req.method} REQUEST FOR TO GET ALL USERS INCOMING...`);
   let users;
   try {
     users = await User.find({}, "-password");
@@ -26,27 +25,23 @@ const getUsers = async (req, res, next) => {
 };
 
 const signup = async (req, res, next) => {
-  console.log(`${req.method} REQUEST FOR SIGNUP INCOMING..`);
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
-    console.log(errors);
     return next(new HttpError("plese check your data", 422));
   }
 
   const { username, email, password } = req.body;
-  // console.log(email);
+
   let existingUser;
 
   try {
     existingUser = await User.findOne({ email: email });
-    // console.log(existingUser);
   } catch (err) {
     const error = new HttpError("signup failed please try later", 500);
     return next(error);
   }
 
   if (existingUser) {
-    // console.log(`${existingUser.email} exists already`);
     const err = new HttpError(
       `${existingUser.email} exists already, please login instead`,
       422
@@ -72,7 +67,6 @@ const signup = async (req, res, next) => {
     });
     image_url = result.secure_url;
     cloudinaryID = result.public_id;
-    console.log(result);
   } catch (err) {
     const error = new HttpError("something went wrong in cloudinary", 500);
     return next(error);
@@ -114,13 +108,11 @@ const signup = async (req, res, next) => {
 };
 
 const login = async (req, res, next) => {
-  console.log(`${req.method} LOGIN REQUEST INCOMING...`);
   const { email, password } = req.body;
 
   let existingUser;
   try {
     existingUser = await User.findOne({ email: email });
-    console.log(existingUser);
   } catch (err) {
     const error = new HttpError("Login failed please try later", 500);
     return next(error);
@@ -161,8 +153,6 @@ const login = async (req, res, next) => {
     const error = new HttpError("Logging In failed! please try later", 500);
     return next(error);
   }
-
-  console.log(token);
 
   res.json({
     // message: `logged-in as ${existingUser.email}`,

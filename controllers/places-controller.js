@@ -13,9 +13,7 @@ const Place = require("../models/place");
 const cloudinary = require("../util/cloudinary");
 
 const getPlaceById = async (req, res, next) => {
-  console.log(`${req.method} PLACE BY ID REQUEST INCOMING...`);
   const placeID = req.params.pid;
-  console.log(placeID);
 
   let place;
   try {
@@ -40,16 +38,13 @@ const getPlaceById = async (req, res, next) => {
 };
 
 const getPlacesByUserId = async (req, res, next) => {
-  console.log(`${req.method} USER BY ID REQUEST INCOMING`);
   const userID = req.params.uid;
-  console.log(userID);
 
   // let places;
   let userWithPlaces;
   try {
     // places = await Place.find({ creator: userID })
     userWithPlaces = await User.findById(userID).populate("places");
-    console.log(userWithPlaces);
   } catch (err) {
     const error = new HttpError(
       "something went wrong could not find the place",
@@ -74,23 +69,18 @@ const getPlacesByUserId = async (req, res, next) => {
 
 // create place POST request
 const createPlace = async (req, res, next) => {
-  console.log(`${req.method} request incoming...`);
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
-    console.log(errors);
     return next(new HttpError("plese check your data", 422));
   }
   const { title, description, address } = req.body;
-  console.log(`${title}, ${description}, ${address}`);
+
   let coordinates;
   try {
-    console.log("trying");
     coordinates = await getCoordinates(address);
-    console.log(coordinates);
   } catch (err) {
     return next(err);
   }
-  console.log("pass");
 
   // cloudinary
   let image_url;
@@ -101,7 +91,6 @@ const createPlace = async (req, res, next) => {
     });
     image_url = result.secure_url;
     cloudinaryID = result.public_id;
-    console.log(result);
   } catch (err) {
     const error = new HttpError("something went wrong in cloudinary", 500);
     return next(error);
@@ -117,7 +106,6 @@ const createPlace = async (req, res, next) => {
     cloudinary_id: cloudinaryID,
   });
 
-  console.log(createdPlace);
   // checking wether the user (creator) is there or not in DB
   let user;
   try {
@@ -132,8 +120,6 @@ const createPlace = async (req, res, next) => {
     const error = new HttpError("could not find the user for given ID", 404);
     return next(error);
   }
-
-  console.log(user);
 
   try {
     const sess = await mongoose.startSession();
@@ -153,21 +139,17 @@ const createPlace = async (req, res, next) => {
 
 // update requests
 const updatePlace = async (req, res, next) => {
-  console.log(`${req.method} BY PLACE REQUEST INCOMING`);
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
-    console.log(errors);
     throw new HttpError("plese check your data", 422);
   }
   const { title, description } = req.body;
   const placeID = req.params.pid;
-  console.log(placeID);
 
   let place;
   // first find the item by place id and make a copy
   try {
     place = await Place.findById(placeID);
-    console.log(place);
   } catch (err) {
     const error = new HttpError(
       "something went wrong could not update the place.",
@@ -200,9 +182,7 @@ const updatePlace = async (req, res, next) => {
 
 // delete requests
 const deletePlace = async (req, res, next) => {
-  console.log(`${req.method} REQUEST INCOMING...`);
   const placeId = req.params.pid;
-  console.log(placeId);
 
   let place;
   try {
@@ -214,9 +194,6 @@ const deletePlace = async (req, res, next) => {
     );
     return next(error);
   }
-
-  console.log("=========");
-  console.log(place);
 
   if (!place) {
     const error = new HttpError("could not find the place for this ID", 404);

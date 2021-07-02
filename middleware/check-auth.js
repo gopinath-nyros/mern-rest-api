@@ -4,7 +4,6 @@ const HttpError = require("../models/http-error");
 
 module.exports = (req, res, next) => {
   if (req.method === "OPTIONS") {
-    console.log("METHOD NAME IS " + req.method);
     return next();
   }
   try {
