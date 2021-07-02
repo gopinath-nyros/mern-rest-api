@@ -67,7 +67,9 @@ const signup = async (req, res, next) => {
   let image_url;
   let cloudinaryID;
   try {
-    const result = await cloudinary.uploader.upload(req.file.path);
+    const result = await cloudinary.uploader.upload(req.file.path, {
+      folder: "mern/users/",
+    });
     image_url = result.secure_url;
     cloudinaryID = result.public_id;
     console.log(result);
