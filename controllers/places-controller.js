@@ -55,11 +55,17 @@ const getPlacesByUserId = async (req, res, next) => {
 
   // if no user data found
   if (!userWithPlaces || userWithPlaces.places.length === 0) {
-    return next(
-      new HttpError("could not find the places for the given user ID"),
-      404
-    );
+    // return next(
+    //   new HttpError("could not find the places for the given user ID"),
+    //   404
+    // );
+    console.log(userWithPlaces);
+    return res.json({
+      userid: userWithPlaces._id.toString(),
+      message: "no place found",
+    });
   }
+
   res.json({
     places: userWithPlaces.places.map((place) =>
       place.toObject({ getters: true })
