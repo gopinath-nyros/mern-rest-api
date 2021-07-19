@@ -11,6 +11,7 @@ const getCoordinates = require("../util/geo-location");
 const Place = require("../models/place");
 
 const cloudinary = require("../util/cloudinary");
+const { log } = require("console");
 
 const getPlaceById = async (req, res, next) => {
   const placeID = req.params.pid;
@@ -39,12 +40,31 @@ const getPlaceById = async (req, res, next) => {
 
 const getPlacesByUserId = async (req, res, next) => {
   const userID = req.params.uid;
-
+  let { page, size } = req.query;
+  console.log(page);
+  console.log(size);
+  if (!page) {
+    page = 1;
+  }
+  if (!size) {
+    size = 5;
+  }
+  // const limit = parseInt(size);
+  // const skip = (page - 1) * size;
   // let places;
   let userWithPlaces;
   try {
     // places = await Place.find({ creator: userID })
-    userWithPlaces = await User.findById(userID).populate("places");
+    userWithPlaces = await User.findById(userID)
+      // .populate("places");
+      .populate({
+        path: "places",
+
+        options: {
+          limit: parseInt(size),
+          skip: (page - 1) * size,
+        },
+      });
   } catch (err) {
     const error = new HttpError(
       "something went wrong could not find the place",
@@ -67,6 +87,8 @@ const getPlacesByUserId = async (req, res, next) => {
   }
 
   res.json({
+    page,
+    size,
     places: userWithPlaces.places.map((place) =>
       place.toObject({ getters: true })
     ),
@@ -79,7 +101,16 @@ const createPlace = async (req, res, next) => {
   if (!errors.isEmpty()) {
     return next(new HttpError("plese check your data", 422));
   }
-  const { title, description, address } = req.body;
+  let { title, description, address } = req.body;
+  const captialString = (str) =>
+    str[0].toUpperCase() + str.slice(1).toLowerCase();
+  title = title.trim();
+  title = title.split(" ").map(captialString);
+  title = title.join(" ");
+  description = description.trim();
+  description =
+    description[0].toUpperCase() + description.slice(1).toLowerCase();
+  address = address.trim();
 
   let coordinates;
   try {
