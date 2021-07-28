@@ -14,6 +14,9 @@ const fileUpload = require("../middleware/file-upload");
 
 const router = express.Router();
 
+// all places of all users
+router.get("/allplaces", placesController.getAllPlaces);
+
 // places
 router.get("/:pid", placesController.getPlaceById);
 

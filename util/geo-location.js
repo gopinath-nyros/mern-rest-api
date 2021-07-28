@@ -7,7 +7,7 @@ async function getCoordinates(address) {
     `http://api.positionstack.com/v1/forward?access_key=${API_KEY}&query=${address}`
   );
   const data = response.data;
-  if (!data) {
+  if (!data || data.data.length === 0) {
     const error = new HttpError(
       "could not find the location for the given address",
       422

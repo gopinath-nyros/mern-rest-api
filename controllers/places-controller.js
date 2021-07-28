@@ -13,10 +13,45 @@ const Place = require("../models/place");
 const cloudinary = require("../util/cloudinary");
 const { log } = require("console");
 
-const getPlaceById = async (req, res, next) => {
-  const placeID = req.params.pid;
+// get all places of all users
+const getAllPlaces = async (req, res, next) => {
+  console.log("GET ALL PLACES TRIGGER");
+  let { page, size } = req.query;
+  const skip = (page - 1) * size;
+  const limit = parseInt(size);
+  let places;
+  let placesCount;
+  try {
+    places = await Place.find({}, "-cloudinary_id")
+      .skip(skip)
+      .limit(limit)
+      .sort({ created_at: "desc" })
+      .populate({
+        path: "creator",
+        select: "username",
+      });
+    placesCount = await Place.countDocuments({});
+    console.log(placesCount);
+  } catch (e) {
+    const error = new HttpError(
+      "somethig went wrong, please try later and try",
+      404
+    );
+    return next(error);
+  }
+  // res.status(201).json({ message: "all places of users" });
+  res.json({
+    count: placesCount,
+    places: places.map((place) => place.toObject({ getters: true })),
+  });
+};
 
+const getPlaceById = async (req, res, next) => {
+  console.log("GET PLACE BY ID TRIGGER");
+
+  const placeID = req.params.pid;
   let place;
+
   try {
     place = await Place.findById(placeID);
   } catch (err) {
@@ -49,22 +84,21 @@ const getPlacesByUserId = async (req, res, next) => {
   if (!size) {
     size = 5;
   }
-  // const limit = parseInt(size);
-  // const skip = (page - 1) * size;
-  // let places;
+
+  let placesCount;
   let userWithPlaces;
   try {
-    // places = await Place.find({ creator: userID })
-    userWithPlaces = await User.findById(userID)
-      // .populate("places");
-      .populate({
-        path: "places",
-
-        options: {
-          limit: parseInt(size),
-          skip: (page - 1) * size,
-        },
-      });
+    userWithPlaces = await User.findById(userID).populate({
+      path: "places",
+      options: {
+        limit: parseInt(size),
+        skip: (page - 1) * size,
+        sort: { created_at: "desc" },
+      },
+    });
+    placesCount = await Place.countDocuments({
+      creator: userID,
+    });
   } catch (err) {
     const error = new HttpError(
       "something went wrong could not find the place",
@@ -75,10 +109,6 @@ const getPlacesByUserId = async (req, res, next) => {
 
   // if no user data found
   if (!userWithPlaces || userWithPlaces.places.length === 0) {
-    // return next(
-    //   new HttpError("could not find the places for the given user ID"),
-    //   404
-    // );
     console.log(userWithPlaces);
     return res.json({
       userid: userWithPlaces._id.toString(),
@@ -87,8 +117,10 @@ const getPlacesByUserId = async (req, res, next) => {
   }
 
   res.json({
+    count: placesCount,
     page,
     size,
+    userid: userWithPlaces._id.toString(),
     places: userWithPlaces.places.map((place) =>
       place.toObject({ getters: true })
     ),
@@ -278,3 +310,4 @@ exports.getPlacesByUserId = getPlacesByUserId;
 exports.createPlace = createPlace;
 exports.updatePlace = updatePlace;
 exports.deletePlace = deletePlace;
+exports.getAllPlaces = getAllPlaces;

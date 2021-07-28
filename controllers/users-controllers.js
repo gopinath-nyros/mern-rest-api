@@ -30,8 +30,8 @@ const signup = async (req, res, next) => {
     return next(new HttpError("plese check your data", 422));
   }
 
-  const { username, email, password } = req.body;
-
+  let { username, email, password } = req.body;
+  username = username[0].toUpperCase() + username.slice(1).toLowerCase();
   let existingUser;
 
   try {
@@ -102,14 +102,12 @@ const signup = async (req, res, next) => {
   }
 
   // res.status(201).json({ user: createdUser.toObject({ getters: true }) });
-  res
-    .status(201)
-    .json({
-      userId: createdUser.id,
-      username: createdUser.username,
-      email: createdUser.email,
-      token: token,
-    });
+  res.status(201).json({
+    userId: createdUser.id,
+    username: createdUser.username,
+    email: createdUser.email,
+    token: token,
+  });
 };
 
 const login = async (req, res, next) => {
