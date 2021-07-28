@@ -15,7 +15,6 @@ const { log } = require("console");
 
 // get all places of all users
 const getAllPlaces = async (req, res, next) => {
-  console.log("GET ALL PLACES TRIGGER");
   let { page, size } = req.query;
   const skip = (page - 1) * size;
   const limit = parseInt(size);
@@ -31,7 +30,6 @@ const getAllPlaces = async (req, res, next) => {
         select: "username",
       });
     placesCount = await Place.countDocuments({});
-    console.log(placesCount);
   } catch (e) {
     const error = new HttpError(
       "somethig went wrong, please try later and try",
@@ -39,7 +37,7 @@ const getAllPlaces = async (req, res, next) => {
     );
     return next(error);
   }
-  // res.status(201).json({ message: "all places of users" });
+
   res.json({
     count: placesCount,
     places: places.map((place) => place.toObject({ getters: true })),
@@ -47,8 +45,6 @@ const getAllPlaces = async (req, res, next) => {
 };
 
 const getPlaceById = async (req, res, next) => {
-  console.log("GET PLACE BY ID TRIGGER");
-
   const placeID = req.params.pid;
   let place;
 
@@ -76,15 +72,7 @@ const getPlaceById = async (req, res, next) => {
 const getPlacesByUserId = async (req, res, next) => {
   const userID = req.params.uid;
   let { page, size } = req.query;
-  console.log(page);
-  console.log(size);
-  if (!page) {
-    page = 1;
-  }
-  if (!size) {
-    size = 5;
-  }
-
+  console.log(`the incoming page num is ${page}`);
   let placesCount;
   let userWithPlaces;
   try {
@@ -109,7 +97,6 @@ const getPlacesByUserId = async (req, res, next) => {
 
   // if no user data found
   if (!userWithPlaces || userWithPlaces.places.length === 0) {
-    console.log(userWithPlaces);
     return res.json({
       userid: userWithPlaces._id.toString(),
       message: "no place found",
@@ -252,7 +239,8 @@ const updatePlace = async (req, res, next) => {
 // delete requests
 const deletePlace = async (req, res, next) => {
   const placeId = req.params.pid;
-
+  const { userID } = req.query;
+  let updatedCount;
   let place;
   try {
     place = await Place.findById(placeId).populate("creator");
@@ -289,6 +277,9 @@ const deletePlace = async (req, res, next) => {
     place.creator.places.pull(place);
     await place.creator.save({ session: sess });
     await sess.commitTransaction();
+    updatedCount = await Place.countDocuments({
+      creator: userID,
+    });
   } catch (e) {
     const error = new HttpError(
       "something went wrong could not delete the place..",
@@ -302,7 +293,9 @@ const deletePlace = async (req, res, next) => {
   //   console.log(err);
   // });
 
-  res.status(200).json({ message: "deleted successfully!" });
+  res
+    .status(200)
+    .json({ message: "deleted successfully!", updatedCount: updatedCount });
 };
 
 exports.getPlaceById = getPlaceById;
